@@ -23,6 +23,7 @@ dependencies = [
     "ddgs>=1.0.0",
     "opentelemetry-api>=1.21.0",
     "opentelemetry-sdk>=1.21.0",
+    "uvicorn>=0.41.0",
 ]
 
 [build-system]

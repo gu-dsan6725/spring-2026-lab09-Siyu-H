@@ -1,0 +1,50 @@
+=== Alice Session 1 ===
+
+User: Hi, I'm Alice. I'm a software engineer.
+Agent: What can I help you with today?
+
+User: I prefer Python for development.
+Agent: That's a great choice! Python is widely used, versatile, and has an excellent ecosystem. Whether you're working on data science, web development, automation, or anything else, I can help with Python-related questions or projects. Let me know what you're working on!
+
+User: What programming languages do I like?
+Agent: Based on what you've told me, you prefer **Python** for development.
+
+That's the language preference you've shared with me so far. Do you work with other languages as well, or is Python your main focus?
+
+User: I'm working on a FastAPI project.
+Agent: Nice! FastAPI is a fantastic choice—it's a modern, fast web framework built on Python that's perfect for building APIs. It has great features like automatic API documentation, async support, and excellent performance.
+
+How can I help with your FastAPI project? Whether it's architecture advice, debugging, best practices, or specific features you're working on, I'm happy to assist!
+
+User: What have we discussed so far?
+Agent: Here's what we've discussed so far:
+
+1. **About you**: You're a software engineer named Alice
+2. **Your preference**: You prefer Python for development
+3. **Current project**: You're working on a FastAPI project
+
+That's the context I have from our conversation. Is there anything else you'd like to tell me or work on together?
+
+
+=== Alice Session 2 (New Session) ===
+
+User: What do you remember about me?
+Agent: Based on my memory, here's what I know about you:
+
+1. **You're a software engineer** 
+2. **You prefer Python for development**
+3. **You're working on a FastAPI project**
+
+That's what I have stored so far. Feel free to tell me more about yourself, your projects, preferences, or anything else you'd like me to remember going forward!
+
+User: What project am I working on?
+Agent: Based on my memory, I know you're working on a **FastAPI project**, but I don't have details about what that project specifically does or what it's for.
+
+Would you like to tell me more about it? I can remember specifics like:
+- What the project aims to accomplish
+- What features you're building
+- Any challenges you're facing
+- Timeline or status
+
+Just let me know and I'll keep that information for our future conversations!
+

@@ -201,11 +201,13 @@ class MemoryManager:
                 full_metadata["run_id"] = run_id
 
             # Store in Mem0 cloud platform with user_id and run_id as first-class parameters
+            # async_mode=False helps downstream search see new rows immediately (labs / demos).
             self.memory.add(
                 content,
                 user_id=user_id,
                 run_id=run_id,
-                metadata=full_metadata
+                metadata=full_metadata,
+                async_mode=False,
             )
 
             logger.info(f"Memory stored for user={user_id} with context (agent={agent_id}, session={run_id})")
@@ -286,41 +288,24 @@ class MemoryManager:
                 f"(limit={limit}, searching across ALL sessions)"
             )
 
-            # Get all run_ids for this user for cross-session recall
-            # Mem0 stores memories under run_id, so we need to query all runs
-            try:
-                users_data = self.memory.users()
-                # Filter for runs (type='run') that belong to this user
-                # Runs are typically named like: user_id-session-N
-                user_runs = [u['name'] for u in users_data.get('results', [])
-                           if u.get('type') == 'run' and u['name'].startswith(user_id + '-')]
-                logger.debug(f"Found {len(user_runs)} runs for user={user_id}: {user_runs}")
-            except Exception as e:
-                logger.warning(f"Could not get user runs, falling back to user_id filter: {e}")
-                user_runs = None
+            # Mem0 v2 requires non-empty filters. Use user_id + run_id wildcard so search
+            # spans all sessions for this user (see Mem0 search API docs).
+            # Do not filter by agent_id here: Mem0 v2 treats agent_id in AND as a
+            # top-level field filter and returns no rows when memories only store
+            # agent_id inside metadata (observed with memory-agent).
+            and_clauses: List[Dict[str, Any]] = [
+                {"user_id": user_id},
+                {"run_id": "*"},
+            ]
 
-            # Build filters for Mem0 cloud platform
-            # Use OR logic across all user's run_ids for cross-session recall
-            if user_runs and len(user_runs) > 0:
-                filters = {
-                    'OR': [{'run_id': run} for run in user_runs]
-                }
-            else:
-                # Fallback to user_id filter (may not work with current Mem0 API)
-                filters = {"user_id": user_id}
+            filters: Dict[str, Any] = {"AND": list(and_clauses)}
+            if metadata_filters:
+                filters["AND"].append(metadata_filters)
 
-            if agent_id and not user_runs:
-                filters["agent_id"] = agent_id
-
-            # Combine with any additional metadata filters
-            if metadata_filters and not user_runs:
-                filters.update(metadata_filters)
-
-            # Search using Mem0 cloud platform with filters
             results = self.memory.search(
                 query=query,
                 filters=filters,
-                limit=limit
+                limit=limit,
             )
 
             # DEBUG: Log raw results from Mem0
@@ -584,7 +569,8 @@ class MemoryManager:
                 conversation_text,
                 user_id=user_id,
                 run_id=run_id,
-                metadata=full_metadata
+                metadata=full_metadata,
+                async_mode=False,
             )
 
             logger.debug(f"Conversation stored for user={user_id} with context (agent={agent_id}, session={run_id})")
