@@ -6,7 +6,7 @@ A demonstration of building an AI agent with comprehensive observability using S
 
 This lab showcases a simple AI agent that:
 - Uses Strands agent framework
-- Provides DuckDuckGo web search capability
+- Provides DuckDuckGo web search and optional **Context7 MCP** documentation tools
 - Implements full observability using Braintrust and OpenTelemetry
 - Uses Anthropic Claude 3 Haiku
 
@@ -234,6 +234,29 @@ Check the logs for detailed error messages. The agent will log all tool invocati
 ### DuckDuckGo Rate Limiting
 
 If you make too many requests quickly, DuckDuckGo may temporarily rate limit you. Wait a moment and try again.
+
+### MCP / Context7 errors
+
+Set `DISABLE_MCP=1` to run with DuckDuckGo only. Override URL with `MCP_CONTEXT7_URL` if needed.
+
+## Lab submission (EXERCISE.md)
+
+1. Configure `.env` (`ANTHROPIC_API_KEY`, `BRAINTRUST_API_KEY`, `BRAINTRUST_PROJECT`).
+2. Run three search-style questions in batch (creates Braintrust traces):
+   ```bash
+   bash run_observability_lab.sh
+   ```
+   Or interactively: `uv run python agent.py`
+3. Open [Braintrust](https://www.braintrust.dev/), capture **Logs overview**, **single trace**, and **metrics** views.
+4. Replace the placeholder PNGs (or overwrite them) with your screenshots — same filenames: `braintrust-overview.png`, `braintrust-trace-details.png`, `braintrust-metrics.png`.
+5. Edit `analysis.md` with your own observations from the dashboard (required for Problem 1).
+6. **Problem 2 (optional):** ensure MCP is enabled, run a doc-style question, capture `braintrust-mcp-tool.png`, and complete `analysis-mcp-observability.md`.
+
+Regenerate instructional placeholders anytime:
+
+```bash
+uv run python generate_braintrust_placeholders.py
+```
 
 ## Additional Resources
 

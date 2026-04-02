@@ -24,6 +24,7 @@ dependencies = [
     "opentelemetry-api>=1.21.0",
     "opentelemetry-sdk>=1.21.0",
     "uvicorn>=0.41.0",
+    "pillow>=12.1.1",
 ]
 
 [build-system]

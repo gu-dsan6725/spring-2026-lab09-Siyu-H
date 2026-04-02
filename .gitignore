@@ -42,6 +42,7 @@ output/
 # Lab deliverables (override *.txt above)
 !simple-memory-agent/alice_output.txt
 !simple-memory-agent/carol_output.txt
+!simple-memory-agent/prompts/system_prompt.txt
 
 # Memory data
 data/
