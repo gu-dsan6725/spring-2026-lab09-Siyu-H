@@ -9,10 +9,14 @@ Demonstrates:
 """
 
 import asyncio
+import atexit
 import json
 import logging
 import os
 from typing import Any, List, Optional
+
+# MCP session must stay open while tools run; `with MCPClient(...)` exits too early.
+_active_mcp_client: Any = None
 
 from braintrust.otel import BraintrustSpanProcessor
 from ddgs import DDGS
@@ -30,6 +34,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 load_dotenv()
+
+
+def _shutdown_mcp_client() -> None:
+    global _active_mcp_client
+    if _active_mcp_client is None:
+        return
+    try:
+        _active_mcp_client.stop(None, None, None)
+    except Exception as e:
+        logger.debug("MCP client shutdown: %s", e)
+    _active_mcp_client = None
+
+
+atexit.register(_shutdown_mcp_client)
 
 
 def _get_env_var(key: str, default: Optional[str] = None) -> str:
@@ -63,9 +81,16 @@ def duckduckgo_search(query: str, max_results: int = 5) -> str:
 
 
 def _load_mcp_tools() -> List[Any]:
-    """Load Context7 MCP tools when enabled and connection succeeds."""
+    """Load Context7 MCP tools when enabled and connection succeeds.
+
+    Keeps MCPClient.start() alive for the process lifetime so tool invocations work
+    (exiting a ``with`` block stops the session and breaks resolve-library-id / query-docs).
+    """
+    global _active_mcp_client
+
     if os.getenv("DISABLE_MCP", "").strip().lower() in ("1", "true", "yes"):
         logger.info("DISABLE_MCP set; skipping MCP tools")
+        _shutdown_mcp_client()
         return []
     try:
         from mcp.client.streamable_http import streamablehttp_client
@@ -76,12 +101,16 @@ def _load_mcp_tools() -> List[Any]:
         def create_transport():
             return streamablehttp_client(url)
 
-        with MCPClient(create_transport) as client:
-            tools = client.list_tools_sync()
-        logger.info("Loaded %d MCP tool(s) from %s", len(tools), url)
-        return list(tools)
+        _shutdown_mcp_client()
+        client = MCPClient(create_transport)
+        client.start()
+        tools = list(client.list_tools_sync())
+        _active_mcp_client = client
+        logger.info("Loaded %d MCP tool(s) from %s (session kept open)", len(tools), url)
+        return tools
     except Exception as e:
         logger.warning("MCP tools unavailable (%s); DuckDuckGo only", e)
+        _active_mcp_client = None
         return []
 
 
@@ -129,8 +158,10 @@ Cite sources when using search results."""
 
     from strands.models import AnthropicModel
 
+    # Older IDs like claude-3-haiku-20240307 may 404 on current Anthropic API.
+    model_id = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
     model = AnthropicModel(
-        model_id="claude-3-haiku-20240307",
+        model_id=model_id,
         max_tokens=4096,
     )
 
